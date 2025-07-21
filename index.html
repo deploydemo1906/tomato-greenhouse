@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tomato Greenhouse Monitor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="fas fa-seedling"></i>
+      </div>
+      <div class="sidebar-title">Tomato Greenhouse</div>
+    </div>
+    
+    <div class="sidebar-menu">
+      <div class="menu-item active">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="menu-item">
+        <i class="fas fa-chart-line"></i>
+        <span>Analytics</span>
+      </div>
+      <div class="menu-item">
+        <i class="fas fa-history"></i>
+        <span>History</span>
+      </div>
+      <div class="menu-item">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </div>
+      <div class="menu-item">
+        <i class="fas fa-question-circle"></i>
+        <span>Help Center</span>
+      </div>
+    </div>
+    
+    <div class="sidebar-footer">
+      <div class="system-status">
+        <div class="status-dot"></div>
+        <span>System Online</span>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title">Tomato Greenhouse Monitor</div>
+    <div class="header-actions">
+      <div class="header-action">
+        <i class="fas fa-bell"></i>
+        <div class="notification-badge">2</div>
+      </div>
+      <div class="user-profile">
+        <div class="user-avatar">AG</div>
+        <div class="user-info">
+          <div class="user-name">Greenhouse Manager</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="content-header">
+      <h1 class="content-title">Tomato Greenhouse Monitoring</h1>
+      <p class="content-subtitle">Real-time tracking of environmental conditions for optimal tomato growth</p>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">TEMPERATURE</div>
+          <div class="stat-icon" style="background-color: rgba(231, 76, 60, 0.1); color: #e74c3c;">
+            <i class="fas fa-thermometer-half"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="temperature">--°C</div>
+        <div class="status-indicator optimal" id="temp-status">Loading...</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">HUMIDITY</div>
+          <div class="stat-icon" style="background-color: rgba(52, 152, 219, 0.1); color: #3498db;">
+            <i class="fas fa-tint"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="humidity">--%</div>
+        <div class="status-indicator optimal" id="hum-status">Loading...</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">SOIL MOISTURE</div>
+          <div class="stat-icon" style="background-color: rgba(39, 174, 96, 0.1); color: #27ae60;">
+            <i class="fas fa-leaf"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="soil">--%</div>
+        <div class="status-indicator optimal" id="soil-status">Loading...</div>
+      </div>
+    </div>
+    
+    <div class="tomato-visual">
+      <div class="tomato-plant">
+        <div class="tomato-pot"></div>
+        <div class="tomato-stem"></div>
+        <div class="tomato-leaf leaf-1"></div>
+        <div class="tomato-leaf leaf-2"></div>
+        <div class="tomato-fruit fruit-1"></div>
+        <div class="tomato-fruit fruit-2"></div>
+        <div class="tomato-fruit fruit-3"></div>
+      </div>
+      <div class="plant-status" id="plant-status">Monitoring greenhouse conditions...</div>
+    </div>
+    
+    <div class="plant-info">
+      <div class="plant-header">
+        <div class="plant-title">Device Status</div>
+        <div class="plant-id">Last updated: <span id="last-update">--</span></div>
+      </div>
+      <div class="plant-grid">
+        <div class="plant-metric">
+          <div class="metric-icon" style="background-color: rgba(231, 76, 60, 0.1); color: #e74c3c;">
+            <i class="fas fa-fan"></i>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">FAN STATUS</div>
+            <div class="metric-value" id="fan-status">--</div>
+          </div>
+        </div>
+        
+        <div class="plant-metric">
+          <div class="metric-icon" style="background-color: rgba(52, 152, 219, 0.1); color: #3498db;">
+            <i class="fas fa-water"></i>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">PUMP STATUS</div>
+            <div class="metric-value" id="pump-status">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <div class="chart-header">
+        <div class="chart-title">Environmental Trends (Last 24 Hours)</div>
+        <div class="chart-controls">
+          <button class="chart-btn active" data-type="temperature">Temperature</button>
+          <button class="chart-btn" data-type="humidity">Humidity</button>
+          <button class="chart-btn" data-type="soil">Soil Moisture</button>
+        </div>
+      </div>
+      <canvas id="dataChart"></canvas>
+    </div>
+  </main>
+<script src="firebase_config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
