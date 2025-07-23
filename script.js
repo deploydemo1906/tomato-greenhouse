@@ -211,6 +211,60 @@ function updateChart() {
   chart.update();
 }
 
+// Fungsi untuk mengupdate tabel history
+function updateHistoryTable() {
+  const tableBody = document.getElementById("history-table-body");
+  tableBody.innerHTML = "";
+
+  if (historyData.timestamps.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No data available</td></tr>`;
+    return;
+  }
+
+  // Membuat baris untuk setiap data history
+  for (let i = historyData.timestamps.length - 1; i >= 0; i--) {
+    const timestamp = historyData.timestamps[i];
+    const temp = historyData.temperature[i];
+    const hum = historyData.humidity[i];
+    const soil = historyData.soil[i];
+
+    // Menentukan status berdasarkan kondisi
+    let status = "status-optimal";
+    if (
+      temp < 18 ||
+      temp > 24 ||
+      hum < 60 ||
+      hum > 85 ||
+      soil < 60 ||
+      soil > 80
+    ) {
+      status = "status-warning";
+    }
+    if (
+      temp < 15 ||
+      temp > 30 ||
+      hum < 50 ||
+      hum > 90 ||
+      soil < 40 ||
+      soil > 85
+    ) {
+      status = "status-critical";
+    }
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${timestamp}</td>
+        <td>${temp.toFixed(1)}°C</td>
+        <td>${hum.toFixed(0)}%</td>
+        <td>${soil.toFixed(0)}%</td>
+        <td><span class="status-badge ${status}">${status
+      .split("-")[1]
+      .toUpperCase()}</span></td>
+      `;
+    tableBody.appendChild(row);
+  }
+}
+
 // Event listener untuk tombol grafik
 document.querySelectorAll(".chart-btn").forEach((button) => {
   button.addEventListener("click", function () {
@@ -243,6 +297,35 @@ document.querySelectorAll(".chart-btn").forEach((button) => {
   });
 });
 
+// Event listener untuk menu tab
+document.querySelectorAll(".menu-item").forEach((item) => {
+  item.addEventListener("click", function () {
+    // Hapus active dari semua item
+    document.querySelectorAll(".menu-item").forEach((i) => {
+      i.classList.remove("active");
+    });
+
+    // Tambahkan active ke item yang diklik
+    this.classList.add("active");
+
+    // Sembunyikan semua tab content
+    document.querySelectorAll(".tab-content").forEach((tab) => {
+      tab.classList.remove("active");
+    });
+
+    // Tampilkan tab yang sesuai
+    const tabId = this.dataset.tab;
+    if (tabId) {
+      document.getElementById(`${tabId}-content`).classList.add("active");
+
+      // Jika tab analytics diaktifkan, update grafik
+      if (tabId === "analytics" && chart) {
+        updateChart();
+      }
+    }
+  });
+});
+
 // Update data dari Firebase
 db.ref("sensor").on("value", (snapshot) => {
   const data = snapshot.val();
@@ -251,19 +334,24 @@ db.ref("sensor").on("value", (snapshot) => {
   const soil = data?.soil ?? null;
 
   // Update waktu terakhir pembaruan
-  document.getElementById("last-update").textContent =
-    new Date().toLocaleTimeString();
+  const lastUpdateEl = document.getElementById("last-update");
+  if (lastUpdateEl) {
+    lastUpdateEl.textContent = new Date().toLocaleTimeString();
+  }
 
   if (temp !== null) {
-    document.getElementById("temperature").textContent = temp.toFixed(1) + "°C";
+    const tempEl = document.getElementById("temperature");
+    if (tempEl) tempEl.textContent = temp.toFixed(1) + "°C";
   }
 
   if (hum !== null) {
-    document.getElementById("humidity").textContent = hum.toFixed(0) + "%";
+    const humEl = document.getElementById("humidity");
+    if (humEl) humEl.textContent = hum.toFixed(0) + "%";
   }
 
   if (soil !== null) {
-    document.getElementById("soil").textContent = soil.toFixed(0) + "%";
+    const soilEl = document.getElementById("soil");
+    if (soilEl) soilEl.textContent = soil.toFixed(0) + "%";
   }
 
   if (temp !== null && hum !== null && soil !== null) {
@@ -294,6 +382,9 @@ db.ref("sensor").on("value", (snapshot) => {
     if (chart) {
       updateChart();
     }
+
+    // Update history table
+    updateHistoryTable();
   }
 });
 
@@ -314,9 +405,12 @@ document.addEventListener("DOMContentLoaded", () => {
   initChart();
 
   // Set default chart type
-  document
-    .querySelector('.chart-btn[data-type="temperature"]')
-    .classList.add("active");
+  const chartBtn = document.querySelector(
+    '.chart-btn[data-type="temperature"]'
+  );
+  if (chartBtn) {
+    chartBtn.classList.add("active");
+  }
 
   // Ambil data history terbaru
   db.ref("history")
@@ -349,5 +443,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (chart) {
         updateChart();
       }
+
+      // Update history table
+      updateHistoryTable();
     });
 });
