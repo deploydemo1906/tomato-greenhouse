@@ -439,12 +439,10 @@ document.addEventListener("DOMContentLoaded", () => {
         historyData.timestamps.push(timeLabel);
       });
 
-      // Update grafik
       if (chart) {
         updateChart();
       }
 
-      // Update history table
       updateHistoryTable();
     });
 });
